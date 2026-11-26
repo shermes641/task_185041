@@ -1,0 +1,15 @@
+[project]
+name = "task-185041"
+version = "0.1.0"
+description = "Bergrivier 2026/27 charges: practice workspace with acceptance tests"
+requires-python = ">=3.11"
+dependencies = [
+    "psycopg2-binary>=2.9",
+    "pytest>=8",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.uv]
+package = false
