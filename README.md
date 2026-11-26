@@ -1,5 +1,7 @@
 # Bergrivier 2026/27 charges (practice workspace)
 
+Record this task in Cursor: open this folder as the workspace.
+
 Cut-down copy: three tariffs (5, 18, 19) of a tariff database, the public Bergrivier 2026/27 documents, and the
 current seed/requirement rows for those tariffs.
 
