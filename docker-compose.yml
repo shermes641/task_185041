@@ -1,0 +1,7 @@
+services:
+  postgres:
+    image: timescale/timescaledb:2.30.0-pg18-oss
+    environment:
+      POSTGRES_PASSWORD: dawn
+    ports:
+      - "127.0.0.1:5434:5432"
