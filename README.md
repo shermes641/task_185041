@@ -3,7 +3,7 @@
 Record this task in Cursor: open this folder as the workspace.
 
 Cut-down copy: three tariffs (5, 18, 19) of a tariff database, the public Bergrivier 2026/27 documents, and the
-current seed/requirement rows for those tariffs. Rates are stored in cents. `docs/` holds the RfD, the Annex A PDF
+current seed rows for those tariffs (`reference/seed_before_excerpt.sql`). Rates are stored in cents. `docs/` holds the RfD, the Annex A PDF
 and a short glossary.
 
 ## Sources
