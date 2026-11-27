@@ -19,7 +19,9 @@ and a short glossary.
 ## Task
 Add the missing basic, reactive-energy and per-Amp demand charges for tariffs 5, 18 and 19 as a seed file
 `seeds/NNN_*.sql` (schema `tariff_dev_v2`). Every rate must match the RfD, run 1 July 2026 to 30 June 2027,
-and cite its source. The tests start with 7 failing and 6 passing; the goal is all green.
+and cite its source. The tests start with 13 failing and 6 passing; the goal is all 19 green.
+Beyond the rows existing, the engine must bill them: the pricing functions join `tariff_tou_pattern_link`, so a rate
+with no pattern link prices to 0 without any error (the last six tests check this).
 
 ## Install the prerequisites
 You need four things: git, uv (Python + dependencies), Docker (runs Postgres) and the `psql` client.
@@ -65,7 +67,7 @@ uv installs the right Python (>= 3.11) by itself; you don't need to install Pyth
 git clone https://github.com/shermes641/task_vu7bca28.git && cd task_vu7bca28
 uv sync                 # creates .venv (Python >= 3.11) with pytest and psycopg2
 docker compose up -d    # Postgres on 127.0.0.1:5434 (password "dawn"); wait a few seconds
-uv run pytest           # first run: 7 failed, 6 passed
+uv run pytest           # first run: 13 failed, 6 passed
 ```
 
 `tests/conftest.py` drops and recreates a scratch database `dawn_scratch` each run, loads

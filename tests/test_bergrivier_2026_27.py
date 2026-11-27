@@ -141,3 +141,52 @@ def test_seeds_are_idempotent(q):
     before = q(snap)
     dbtools.apply_seeds()
     assert q(snap) == before
+
+
+# --- the engine must actually bill the new rates -------------------------------------------------------
+# Rows that exist are not enough: the pricing functions join tariff_tou_pattern_link, so a rate with a
+# tariff_rate_classes window but no pattern link prices to 0 (or returns no rows) without any error.
+PERIOD = ("2026-07-01", "2026-08-01")
+
+
+def _rate_class_of(q, tariff: int, value: Decimal, test: Callable[[Row], bool]) -> int:
+    ids = {r.rate_id for r in matching(q, tariff, value, test)}
+    assert ids, f"tariff {tariff}: no rate of {value} c matching the unit/type check yet"
+    return q("SELECT rate_class_id FROM tariff_dev_v2.rates WHERE rate_id = %s", (min(ids),))[0][0]
+
+
+@pytest.mark.parametrize("tariff", TARIFFS)
+def test_basic_charge_bills_nonzero(q, tariff):
+    """get_monthly_charge_cost for July 2026 returns the RfD basic charge (rand), not 0."""
+    value = cents(rfd_non_energy()[(tariff, "Basic")])
+    cid = _rate_class_of(q, tariff, value, lambda r: r.rate_type == "fixed" and r.cost_unit == "month")
+    got = q("SELECT cost FROM tariff_dev_v2.get_monthly_charge_cost(%s, %s, '{}', %s, %s)", (tariff, cid, *PERIOD))
+    assert got and got[0][0] == pytest.approx(float(value) / 100), \
+        f"tariff {tariff}: basic charge bills {got}, expected R{value / 100}; is the rate class linked in tariff_tou_pattern_link?"
+
+
+@pytest.mark.parametrize("tariff", (18, 19))
+def test_reactive_energy_bills_excess_kvarh(q, tariff):
+    """5000 kVArh on 10000 kWh: excess over 0.30 x kWh is 2000 kVArh, billed at the RfD rate."""
+    value = cents(rfd_non_energy()[(tariff, "Reactive energy")])
+    cid = _rate_class_of(q, tariff, value, lambda r: r.cost_unit == "kVArh")
+    q("CREATE SCHEMA IF NOT EXISTS hyper")
+    q('CREATE TABLE IF NOT EXISTS hyper."ParameterLog" (entity_cuid text, parameter_id text, "timestamp" timestamp, value double precision)')
+    q('DELETE FROM hyper."ParameterLog" WHERE entity_cuid = %s', ("meter-1",))
+    q('INSERT INTO hyper."ParameterLog" VALUES (%s,%s,%s,%s),(%s,%s,%s,%s),(%s,%s,%s,%s),(%s,%s,%s,%s)',
+      ("meter-1", "kwh", "2026-07-01 00:00", 0, "meter-1", "kvarh", "2026-07-01 00:00", 0,
+       "meter-1", "kwh", "2026-07-31 23:59", 10000, "meter-1", "kvarh", "2026-07-31 23:59", 5000))
+    got = q("SELECT sum(cost) FROM tariff_dev_v2.get_reactive_energy_charge_cost(%s, %s, '{}', 'meter-1', 'kwh', 'kvarh', %s, %s)",
+            (tariff, cid, "2026-07-01 00:00", "2026-08-01 00:00"))
+    expected = 2000 * float(value) / 100
+    assert got and got[0][0] is not None and got[0][0] == pytest.approx(expected), \
+        f"tariff {tariff}: reactive charge bills {got}, expected R{expected:.2f}; is the rate class linked in tariff_tou_pattern_link?"
+
+
+def test_tariff5_per_amp_demand_bills(q):
+    """60 A on 3 phases = 180 Amp-phases x R4.09 = R736.20 for July 2026."""
+    value = cents(rfd_non_energy()[(5, "Demand")])
+    cid = _rate_class_of(q, 5, value, lambda r: "amp" in r.cost_unit.lower())
+    got = q("SELECT tariff_dev_v2.capacity_rate_cost(5, %s, '{}', 180, %s, %s)", (cid, *PERIOD))
+    assert float(got[0][0]) == pytest.approx(180 * float(value) / 100), \
+        f"tariff 5: per-Amp demand bills {got}, expected R{180 * float(value) / 100:.2f}; is the class linked in tariff_tou_pattern_link?"
