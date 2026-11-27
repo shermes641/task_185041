@@ -62,7 +62,7 @@ uv installs the right Python (>= 3.11) by itself; you don't need to install Pyth
 ## Quick start
 
 ```bash
-git clone https://github.com/shermes641/task_185041.git && cd task_185041
+git clone https://github.com/shermes641/task_vu7bca28.git && cd task_vu7bca28
 uv sync                 # creates .venv (Python >= 3.11) with pytest and psycopg2
 docker compose up -d    # Postgres on 127.0.0.1:5434 (password "dawn"); wait a few seconds
 uv run pytest           # first run: 7 failed, 6 passed
