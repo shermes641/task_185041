@@ -6,6 +6,16 @@ Cut-down copy: three tariffs (5, 18, 19) of a tariff database, the public Bergri
 current seed/requirement rows for those tariffs. Rates are stored in cents. `docs/` holds the RfD, the Annex A PDF
 and a short glossary.
 
+## Sources
+- **Annex A** (`docs/2026-2027_Bergrivier_NERSA_Tariff_Application_Annex_A.pdf`): Bergrivier Municipality's 2026/27
+  electricity tariff application to NERSA, downloaded unchanged from
+  <https://www.bergmun.org.za/sites/default/files/2026-27-Electricity-tariff-application-to-NERSA-Bergrivier-municipality%20ANNEX%20A.pdf>
+  (SHA-256 `4139a83e...c9f288`, verified identical to the repo copy on 2026-11-27).
+- **RfD** (`docs/BERGRIVIER_2026_27_NERSA_RFD.md`): transcription of NERSA's Decision and Reasons for Decision, see the
+  source URL in the file header.
+- **Database subset, tests, reference excerpts**: a cut-down copy of a tariff database (tariffs 5, 18, 19) and tests
+  written for this practice workspace.
+
 ## Task
 Add the missing basic, reactive-energy and per-Amp demand charges for tariffs 5, 18 and 19 as a seed file
 `seeds/NNN_*.sql` (schema `tariff_dev_v2`). Every rate must match the RfD, run 1 July 2026 to 30 June 2027,
